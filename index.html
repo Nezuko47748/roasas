@@ -212,18 +212,43 @@ const frasesBase=(Array.isArray(CONFIG.frases)&&CONFIG.frases.length)?CONFIG.fra
 const WORD_SLOTS=150;
 const WORDS=Array.from({length:WORD_SLOTS},(_,i)=>frasesBase[i%frasesBase.length]);
 function makeTextTexture(text,color){
-  const c=document.createElement('canvas');c.width=512;c.height=128;
-  const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);
+  const canvasW=768,canvasH=192;
+  const c=document.createElement('canvas');c.width=canvasW;c.height=canvasH;
+  const ctx=c.getContext('2d');ctx.clearRect(0,0,canvasW,canvasH);
   ctx.textAlign='center';ctx.textBaseline='middle';
   ctx.fillStyle='#fff';ctx.shadowColor=color;ctx.shadowBlur=30;
-  const maxWidth=c.width-48;
+
+  const maxWidth=canvasW-60;
   let fontSize=60;
   ctx.font=fontSize+"px 'Indie Flower', cursive";
-  while(ctx.measureText(text).width>maxWidth&&fontSize>24){
+
+  while(ctx.measureText(text).width>maxWidth&&fontSize>30){
     fontSize-=2;
     ctx.font=fontSize+"px 'Indie Flower', cursive";
   }
-  ctx.fillText(text,c.width/2,c.height/2);
+
+  if(ctx.measureText(text).width>maxWidth){
+    const words=text.split(' ');
+    let line1='',line2='';
+    for(let i=0;i<words.length;i++){
+      const test=line1?line1+' '+words[i]:words[i];
+      if(ctx.measureText(test).width<=maxWidth||!line1){
+        line1=test;
+      }else{
+        line2=words.slice(i).join(' ');
+        break;
+      }
+    }
+    while(ctx.measureText(line2).width>maxWidth&&fontSize>22){
+      fontSize-=2;
+      ctx.font=fontSize+"px 'Indie Flower', cursive";
+    }
+    ctx.fillText(line1,canvasW/2,canvasH/2-fontSize*0.6);
+    ctx.fillText(line2,canvasW/2,canvasH/2+fontSize*0.6);
+  }else{
+    ctx.fillText(text,canvasW/2,canvasH/2);
+  }
+
   return new THREE.CanvasTexture(c);
 }
 const COLORS=['#ffd700','#ffe066','#ffcc33','#ffb347','#fff2b0','#ffaa00','#f4c430','#e6b800','#ffdb58','#f0c419'];
